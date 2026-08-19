@@ -1,0 +1,7 @@
+# Root level gitignore
+node_modules/
+.env
+.DS_Store
+.vscode/
+.idea/
+notes/
