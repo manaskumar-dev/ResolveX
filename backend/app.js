@@ -25,11 +25,16 @@ mongoose.connect(mongoUri)
 app.use(express.json());
 
 const corsOptions = {
-  origin: [process.env.FRONTEND_URL || 'http://localhost:5173', 'http://localhost:5174'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin']
+    origin: [
+        'https://resolvexcms.netlify.app',
+        'http://localhost:5173',
+        'http://localhost:5174'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 };
+
 app.use(cors(corsOptions));
 
 app.use("/auth", authRouter);
