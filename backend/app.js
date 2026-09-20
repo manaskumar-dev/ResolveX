@@ -26,9 +26,7 @@ app.use(express.json());
 
 const corsOptions = {
     origin: [
-        'https://resolvexcms.netlify.app',
-        'http://localhost:5173',
-        'http://localhost:5174',
+        'https://resolve-x-blush.vercel.app',
         'http://localhost:3000'
     ],
     credentials: true,
