@@ -219,7 +219,7 @@ Email notifications are optional — the app runs fine without them.
 - name, email, userId, timestamps
 
 ### Complaint
-- category, description, status, ticketId, userId, assignedTo, resolutionMessage, review, timestamps
+- category, description, status, ticketId, userId, assignedTo, resolutionMessage, review, timestamps.
 
 ## Contributing
 
