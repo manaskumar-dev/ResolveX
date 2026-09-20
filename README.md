@@ -1,6 +1,6 @@
 # Complaint Management System (ComplaintMS)
 
-A streamlined complaint management platform built with Node.js, Express, MongoDB, React, and Tailwind CSS.
+A streamlined complaint management platform built with Node.js, Express, MongoDB, and a vanilla HTML/CSS/JavaScript frontend.
 
 ## Features
 
@@ -32,19 +32,19 @@ A streamlined complaint management platform built with Node.js, Express, MongoDB
 - Node.js with Express.js
 - MongoDB for database
 - JWT for authentication
-- Nodemailer for email notifications
+- Nodemailer / Brevo API for email notifications
 - Bcrypt for password hashing
 
 **Frontend:**
-- React with React Router
-- Tailwind CSS for styling
-- Axios for API requests
-- Vite as build tool
+- Plain HTML, CSS, and vanilla JavaScript (no framework, no build step)
+- Client-side routing via the History API
+- `fetch()`-based API client
+- No bundler required — served as static files
 
 ## Project Structure
 
 ```
-14. Complaint Management System/
+ResolveX/
 ├── backend/
 │   ├── adminRole/          # Admin controllers, routes, middlewares
 │   ├── agentRole/          # Agent controllers, routes, middlewares
@@ -56,23 +56,30 @@ A streamlined complaint management platform built with Node.js, Express, MongoDB
 │   └── .env.example        # Template for .env
 │
 └── frontend/
-    ├── src/
-    │   ├── components/     # Reusable components
-    │   ├── context/        # React context (Auth)
-    │   ├── pages/          # Page components
-    │   ├── api.js          # API endpoints
-    │   ├── App.jsx         # Main app component
-    │   └── main.jsx        # Entry point
-    ├── package.json
-    ├── vite.config.js
-    └── .env.example        # Template for .env
+    ├── index.html           # SPA entry point (backend URL configured here)
+    ├── _redirects           # Netlify SPA fallback rule
+    ├── css/                 # Plain CSS (utility classes + base styles)
+    └── js/
+        ├── app.js           # Route table + bootstrap
+        ├── api.js           # fetch()-based API client
+        ├── auth.js          # Auth state (token/user), backed by localStorage
+        ├── router.js        # Client-side history-API router
+        ├── utils.js         # Shared helpers (status colors, formatting, escaping)
+        ├── components/
+        │   ├── navbar.js        # Top navigation bar
+        │   └── chatPortal.js    # Complaint communication portal
+        └── pages/
+            ├── login.js, signup.js, profile.js, createComplaint.js,
+            ├── complaintsList.js, complaintDetails.js, notFound.js
+            ├── admin/dashboard.js, admin/agents.js, admin/users.js, admin/complaints.js
+            └── agent/dashboard.js, agent/complaints.js, agent/complaintDetail.js
 ```
 
 ## Installation & Setup
 
 ### Prerequisites
 - Node.js
-- MongoDB
+- MongoDB (local install or a free MongoDB Atlas cluster)
 - npm
 
 ### Backend Setup
@@ -97,12 +104,16 @@ cp .env.example .env
 MONGODB_URI=mongodb://127.0.0.1:27017/CMS
 JWT_SECRET=your_secret_key
 PORT=8080
-FRONTEND_URL=http://localhost:5173
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
 
-# Optional: Email notifications
+# Optional: Email notifications (Brevo API)
+BREVO_API_KEY=your_brevo_api_key
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_password
 ```
+
+> If you don't have MongoDB installed locally, create a free cluster at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register), whitelist your IP (or `0.0.0.0/0` for local dev), and use the connection string it gives you as `MONGODB_URI`.
 
 5. Create admin user (one-time setup):
 ```bash
@@ -114,48 +125,51 @@ node createAdmin.js
 npm start
 ```
 
-Server will run on `http://localhost:8080`
+Server will run on `http://localhost:8080` (or whatever `PORT` you set).
 
 ### Frontend Setup
+
+No installation or build step needed — it's static HTML/CSS/JS.
 
 1. Navigate to frontend directory:
 ```bash
 cd frontend
 ```
 
-2. Install dependencies:
+2. Open `index.html` and set the backend URL near the top of `<head>`:
+```html
+<script>
+  window.APP_CONFIG = {
+    API_BASE_URL: 'http://localhost:8080',
+  };
+</script>
+```
+
+3. Serve the folder with any static file server, e.g.:
 ```bash
-npm install
+npx serve .
 ```
 
-3. Create `.env` file from `.env.example`:
-```bash
-cp .env.example .env
-```
+4. Open the printed URL (e.g. `http://localhost:3000`) in your browser.
 
-4. Update `.env`:
-```env
-VITE_API_URL=http://localhost:8080
-```
+> Because this is a client-side-routed single page app, deep-linking directly to a route like `/complaints` requires your static file server to fall back to `index.html` for unknown paths. A `_redirects` file (Netlify's SPA fallback format) is included for that purpose.
 
-5. Start development server:
-```bash
-npm run dev
-```
+## CORS Configuration
 
-Frontend will run on `http://localhost:5173`
+The backend's allowed origins are configured in `backend/app.js` (`corsOptions.origin`). If you serve the frontend from a different host/port than what's listed there, add it to that array so the browser doesn't block requests.
 
 ## Email Configuration
 
-To enable email notifications:
+To enable email notifications via Brevo:
 
-1. Enable 2-Factor Authentication on your Gmail account
-2. Generate an App Password
-3. Add to backend `.env`:
+1. Create a [Brevo](https://www.brevo.com/) account and generate an API key
+2. Add to backend `.env`:
 ```env
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_16_character_app_password
+BREVO_API_KEY=your_brevo_api_key
+EMAIL_USER=your_sender_email@example.com
 ```
+
+Email notifications are optional — the app runs fine without them.
 
 ## API Routes
 
@@ -169,17 +183,32 @@ EMAIL_PASS=your_16_character_app_password
 - `GET /user/completedComplaints` - Get completed complaints
 - `POST /user/regComplain` - Create complaint
 - `GET /user/complaint/:ticketId` - Get complaint details
+- `GET /user/profile` - Get profile
+- `PUT /user/profile` - Update profile
+
+### Review Routes
+- `POST /review/review/:ticketId` - Add a review to a resolved complaint
 
 ### Agent Routes
-- `GET /agent/complaints` - Get assigned complaints
+- `GET /agent/allComplaints` - Get assigned complaints
+- `GET /agent/complaint/:ticketId` - Get a single assigned complaint
 - `PUT /agent/complaint/:ticketId/in-progress` - Mark as in progress
-- `PUT /agent/complaint/:ticketId/resolved` - Mark as resolved
+- `PUT /agent/complaint/:ticketId/resolve` - Mark as resolved
 
 ### Admin Routes
 - `POST /admin/createAgent` - Create new agent
-- `GET /admin/agents` - Get all agents
-- `GET /admin/users` - Get all users
-- `GET /admin/complaints` - Get all complaints
+- `GET /admin/allAgents` - Get all agents
+- `GET /admin/allUsers` - Get all users
+- `GET /admin/allComplaints` - Get all complaints
+- `GET /admin/unassignedComplaints` - Get unassigned complaints
+- `GET /admin/allAgentByCategory/:ticketId` - Get agents matching a complaint's category
+- `POST /admin/assignComplaint/:ticketId` - Assign a complaint to an agent
+
+### Message Routes
+- `GET /message/user/complaint/:ticketId/messages` - Get messages (user side)
+- `POST /message/user/complaint/:ticketId/message` - Send a message (user side)
+- `GET /message/agent/complaint/:ticketId/messages` - Get messages (agent side)
+- `POST /message/agent/complaint/:ticketId/message` - Send a message (agent side)
 
 ## Database Models
 
@@ -190,7 +219,7 @@ EMAIL_PASS=your_16_character_app_password
 - name, email, userId, timestamps
 
 ### Complaint
-- title, category, description, status, ticketId, userId, assignedTo, messages, resolutionMessage, timestamps
+- category, description, status, ticketId, userId, assignedTo, resolutionMessage, review, timestamps
 
 ## Contributing
 
