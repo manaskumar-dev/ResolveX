@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complaint Management - User</title>
+
+    <!--
+      Backend configuration.
+      This replaces the Vite build-time env variable `VITE_API_URL` that the
+      original React app used. Point API_BASE_URL at your backend's URL -
+      nothing else in the app needs to change.
+    -->
+    <script>
+      window.APP_CONFIG = {
+        API_BASE_URL: 'http://localhost:8080',
+      };
+    </script>
+
+    <link rel="stylesheet" href="/css/colors.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/utilities.css" />
+    <link rel="stylesheet" href="/css/typography.css" />
+    <link rel="stylesheet" href="/css/colors-utilities.css" />
+    <link rel="stylesheet" href="/css/interactive.css" />
+  </head>
+  <body>
+    <div class="min-h-screen bg-gray-50">
+      <div id="navbar-root"></div>
+      <div class="app-shell-inner">
+        <div id="app-root"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/js/app.js"></script>
+  </body>
+</html>
